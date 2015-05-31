@@ -5,7 +5,7 @@ require 'humanized_slack_api/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "humanized_slack_api"
-  spec.version       = HumanizedslackApi::VERSION
+  spec.version       = HumanizedSlackApi::VERSION
   spec.authors       = ["Kinoshita.Yasuhiro"]
   spec.email         = ["WhoIsDissolvedGirl+github@gmail.com"]
 
