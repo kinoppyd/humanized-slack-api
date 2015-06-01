@@ -1,5 +1,11 @@
+require 'forwardable'
+
 module HumanizedSlackApi
   class Channels
+    attr_reader :channel
+    extend Forwardable
+    include Enumerable
+    def_delegators(:@channels, :each)
 
     def initialize(channels_list, root_parent)
       @channels_list = channels_list

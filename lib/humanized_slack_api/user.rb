@@ -1,5 +1,12 @@
+require 'forwardable'
+
 module HumanizedSlackApi
   class Users
+    attr_reader :users
+    extend Forwardable
+    include Enumerable
+    def_delegators(:@users, :each)
+
     def initialize(users_list, root_parent)
       @users_list = users_list
       @users = @users_list['members'].map {|u| User.build(u, root_parent) }
