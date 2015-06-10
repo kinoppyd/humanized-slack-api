@@ -8,22 +8,28 @@ module HumanizedSlackApi
     def_delegators(:@channels, :each)
 
     def initialize(channels_list, root_parent)
-      @channels_list = channels_list
-      @channels = @channels_list['channels'].map {|c| Channel.build(c, root_parent) }
+      @channels = []
+      @channels_names = {}
+      @channels_ids = {}
+      channels_list['channels'].each do |c|
+        channel = Channel.build(c, root_parent)
+        @channels << channel
+        @channels_names[channel.name.to_s] = channel
+        @channels_ids[channel.id.to_s] = channel
+      end
 
-      @channels.map(&:name).each do |channel_name|
-        define_singleton_method(channel_name) do
-          @channels.find {|c| c.name == __method__.to_s }
+      @channels.each do |channel|
+        [channel.id, channel.name].each do |method_key|
+          define_singleton_method(method_key) do
+            key = __method__.to_s
+            @channels_ids[key] || @channels_names[key] || raise
+          end
         end
       end
     end
 
-    def find_by(ops)
-      methods = Channel.new.methods
-      target_keys = ops.keys.select {|k| methods.include?(k) }
-      @channels.select do |channel|
-        target_keys.map { |m| channel.send(m) == ops[m] }.all?
-      end
+    def find(id)
+      @channels_id[id.to_s] || raise
     end
   end
 
@@ -54,7 +60,7 @@ module HumanizedSlackApi
     end
 
     def members
-      @members.first.class == User ? @members : @members = @members.map {|m| @root_parent.users.find_by(id: m).first }
+      @members.first.class == User ? @members : @members = @members.map {|m| @root_parent.users.find(m) }
     end
 
     class ChannelAttr

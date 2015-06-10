@@ -2,32 +2,33 @@ require 'forwardable'
 
 module HumanizedSlackApi
   class Users
-    attr_reader :users
     extend Forwardable
     include Enumerable
     def_delegators(:@users, :each)
 
     def initialize(users_list, root_parent)
-      @users_list = users_list
-      @users = @users_list['members'].map {|u| User.build(u, root_parent) }
+      @users = []
+      @users_names = {}
+      @users_ids = {}
+      users_list['members'].each do |u|
+        user = User.build(u, root_parent)
+        @users << user
+        @users_names[user.name.to_s] = user
+        @users_ids[user.id.to_s] = user
+      end
 
-      @users.map(&:name).each do |user_name|
-        define_singleton_method(user_name) do
-          @users.find {|c| c.name == __method__.to_s }
+      @users.each do |user|
+        [user.name, user.id].each do |method_key|
+          define_singleton_method(method_key) do
+            key = __method__.to_s
+            @users_ids[key] || @users_names[key] || raise
+          end
         end
       end
     end
 
-    def fetch(id)
-      @users.find {|u| u.id.to_s == id.to_s } || raise
-    end
-
-    def find_by(ops)
-      methods = User.new.methods
-      target_keys = ops.keys.select {|k| methods.include?(k) }
-      @users.select do |user|
-        target_keys.map { |m| user.send(m) == ops[m] }.all?
-      end
+    def find(id)
+      @users_ids[id.to_s] || raise
     end
   end
 
