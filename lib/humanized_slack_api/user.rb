@@ -56,6 +56,13 @@ module HumanizedSlackApi
     end
 
     def belongs_channels
+      @channels ||= find_belongs_channels
+    end
+
+    def find_belongs_channels
+      @root_parent.channels.select { |channel|
+        channel.members.include?(self)
+      }
     end
 
     class Profile
