@@ -17,19 +17,14 @@ module HumanizedSlackApi
         @users_ids[user.id.to_s] = user
       end
 
-      @users.each do |user|
-        [user.name, user.id].each do |method_key|
-          define_singleton_method(method_key) do
-            key = __method__.to_s
-            @users_ids[key] || @users_names[key] || raise
-          end
-        end
-      end
     end
 
-    def find(id)
-      @users_ids[id.to_s] || raise
+    def find(key)
+      key = key.id if key.instance_of?(User)
+      @users_ids[key.to_s] || @users_names[key.to_s] || raise(NoUserFoundError.new("Not found [#{key}]"))
     end
+
+    class NoUserFoundError < StandardError; end
   end
 
   class User

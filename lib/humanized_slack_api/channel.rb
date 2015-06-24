@@ -18,19 +18,14 @@ module HumanizedSlackApi
         @channels_ids[channel.id.to_s] = channel
       end
 
-      @channels.each do |channel|
-        [channel.id, channel.name].each do |method_key|
-          define_singleton_method(method_key) do
-            key = __method__.to_s
-            @channels_ids[key] || @channels_names[key] || raise
-          end
-        end
-      end
     end
 
-    def find(id)
-      @channels_id[id.to_s] || raise
+    def find(key)
+      key = key.id if key.instance_of?(Channel)
+      @channels_ids[key.to_s] || @channels_names[key.to_s] || raise(NoChannelFoundError.new("Not found #{key}"))
     end
+
+    class NoChannelFoundError < StandardError; end
   end
 
   class Channel
